@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctor Admin Portal | Dr. Muhammad Talha Hassan Shah, MBBS</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            teal: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+              800: '#115e59',
+              900: '#134e4a',
+            },
+            navy: {
+              800: '#1e293b',
+              900: '#0f172a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- ======================== VIEW 1: LOGIN SCREEN ======================== -->
+  <div id="loginView" class="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-teal-950">
+    <div class="max-w-md w-full bg-white/95 backdrop-blur-xl rounded-3xl p-8 sm:p-10 shadow-2xl border border-white/20 space-y-6">
+      
+      <!-- Brand Header -->
+      <div class="text-center space-y-2">
+        <div class="w-16 h-16 rounded-2xl bg-teal-600 text-white flex items-center justify-center text-3xl mx-auto shadow-lg shadow-teal-600/30">
+          <i class="fa-solid fa-user-doctor"></i>
+        </div>
+        <h2 class="text-xl font-black text-slate-900 tracking-tight">Dr. Muhammad Talha Hassan Shah</h2>
+        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-[11px] font-bold tracking-wider uppercase">
+          <i class="fa-solid fa-shield-halved text-[10px]"></i> Doctor &amp; Practice Admin Portal
+        </div>
+        <p class="text-xs text-slate-500 pt-1">Sign in with your clinical credentials to access patient appointments and PostgreSQL records.</p>
+      </div>
+
+      <!-- Error Alert -->
+      <div id="loginErrorAlert" class="hidden p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2">
+        <i class="fa-solid fa-triangle-exclamation text-rose-500 text-sm shrink-0"></i>
+        <span id="loginErrorMsg">Invalid credentials.</span>
+      </div>
+
+      <!-- Login Form -->
+      <form id="adminLoginForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Doctor Email or Username</label>
+          <div class="relative">
+            <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input id="loginUsername" type="text" required placeholder="admin@drtalha.com or dr.talha" value="admin@drtalha.com" class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Password</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input id="loginPassword" type="password" required placeholder="Enter password" value="DoctorTalha@2026" class="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white">
+            <button type="button" id="togglePasswordBtn" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" id="loginSubmitBtn" class="w-full py-3.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-sm uppercase tracking-wider shadow-lg shadow-teal-600/25 active:scale-95 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          <span>Secure Doctor Sign In</span>
+        </button>
+      </form>
+
+      <!-- Quick Fill Credentials Info Box -->
+      <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs space-y-1.5">
+        <div class="flex items-center justify-between text-slate-700 font-bold">
+          <span class="flex items-center gap-1.5"><i class="fa-solid fa-key text-teal-600"></i> Default Doctor Credentials:</span>
+          <button id="fillCredentialsBtn" type="button" class="text-teal-700 hover:underline text-[11px] font-bold">Autofill</button>
+        </div>
+        <div class="text-[11px] text-slate-500 font-mono space-y-0.5">
+          <div>Email: <strong class="text-slate-800">admin@drtalha.com</strong> (or <strong class="text-slate-800">dr.talha</strong>)</div>
+          <div>Password: <strong class="text-slate-800">DoctorTalha@2026</strong></div>
+        </div>
+      </div>
+
+      <div class="text-center pt-2">
+        <a href="/" class="text-xs text-slate-500 hover:text-teal-600 font-medium transition inline-flex items-center gap-1">
+          <i class="fa-solid fa-arrow-left text-[10px]"></i> Return to Patient Website
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================== VIEW 2: AUTHENTICATED DASHBOARD ======================== -->
+  <div id="dashboardView" class="hidden min-h-screen flex-col flex-1">
+    
+    <!-- TOP HEADER -->
+    <header class="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-40 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        
+        <div class="flex items-center gap-3">
+          <a href="/" class="flex items-center gap-2 group" title="Return to Main Website">
+            <div class="w-10 h-10 rounded-xl bg-teal-600 flex items-center justify-center font-bold text-white shadow-md shadow-teal-500/20 group-hover:scale-105 transition">
+              <i class="fa-solid fa-user-doctor"></i>
+            </div>
+            <div>
+              <h1 class="font-bold text-sm sm:text-base leading-tight tracking-tight text-white flex items-center gap-2">
+                Dr. Muhammad Talha Hassan Shah
+                <span class="bg-teal-900 text-teal-300 border border-teal-700 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded">MBBS</span>
+              </h1>
+              <p class="text-xs text-slate-400">Clinical Practice &amp; Telehealth Admin Portal</p>
+            </div>
+          </a>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <!-- Active Doctor Indicator -->
+          <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs">
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span id="headerDoctorName" class="font-semibold text-slate-200">Dr. Talha</span>
+          </div>
+
+          <a href="/" target="_blank" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-700 transition">
+            <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+            Patient View
+          </a>
+
+          <button id="refreshBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold shadow transition active:scale-95">
+            <i class="fa-solid fa-arrows-rotate"></i>
+            Refresh
+          </button>
+
+          <button id="logoutBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500 text-rose-300 hover:text-white text-xs font-semibold transition" title="Log Out of Admin Portal">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            <span>Log Out</span>
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+
+      <!-- METRICS CARDS -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Bookings</p>
+            <h3 id="statTotalBookings" class="text-2xl font-black text-slate-800 mt-1">--</h3>
+            <p class="text-xs text-teal-600 font-medium mt-1"><i class="fa-solid fa-database mr-1"></i> Recorded in PostgreSQL</p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-calendar-check"></i>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Today's Schedule</p>
+            <h3 id="statTodayBookings" class="text-2xl font-black text-slate-800 mt-1">--</h3>
+            <p class="text-xs text-slate-500 font-medium mt-1" id="statTodayDate">--</p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-clock"></i>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Telemedicine Calls</p>
+            <h3 id="statTelehealth" class="text-2xl font-black text-slate-800 mt-1">--</h3>
+            <p class="text-xs text-indigo-600 font-medium mt-1"><i class="fa-solid fa-video mr-1"></i> Online Consults</p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-headset"></i>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Inquiries</p>
+            <h3 id="statInquiries" class="text-2xl font-black text-slate-800 mt-1">--</h3>
+            <p class="text-xs text-amber-600 font-medium mt-1" id="statUnreadInquiries">-- Unread queries</p>
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-envelope-open-text"></i>
+          </div>
+        </div>
+      </section>
+
+      <!-- NAVIGATION TABS -->
+      <div class="flex border-b border-slate-200 gap-4">
+        <button id="tabBookingsBtn" class="tab-btn pb-3 font-bold text-sm border-b-2 border-teal-600 text-teal-600 flex items-center gap-2">
+          <i class="fa-solid fa-calendar-days"></i>
+          Patient Appointments
+        </button>
+        <button id="tabInquiriesBtn" class="tab-btn pb-3 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-comments"></i>
+          Contact Inquiries
+        </button>
+        <button id="tabServicesBtn" class="tab-btn pb-3 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-stethoscope"></i>
+          Clinical Services &amp; Timings
+        </button>
+      </div>
+
+      <!-- TAB 1: APPOINTMENTS -->
+      <section id="sectionBookings" class="space-y-4">
+        <div class="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200/80 shadow-sm space-y-4">
+          
+          <!-- Controls & Filters -->
+          <div class="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+            <div class="flex flex-1 flex-col sm:flex-row gap-3">
+              <div class="relative flex-1">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input id="searchInput" type="text" placeholder="Search by patient name, phone, or booking ID..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+              </div>
+
+              <select id="statusFilter" class="px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white">
+                <option value="all">All Statuses</option>
+                <option value="Confirmed">Confirmed</option>
+                <option value="Pending">Pending</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+
+              <input id="dateFilter" type="date" class="px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white">
+            </div>
+
+            <div class="flex gap-2">
+              <button id="newBookingModalBtn" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold uppercase tracking-wider shadow transition">
+                <i class="fa-solid fa-plus"></i>
+                New Slot
+              </button>
+              <button id="exportCsvBtn" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition" title="Export current bookings to CSV">
+                <i class="fa-solid fa-file-csv"></i>
+                Export CSV
+              </button>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-slate-100 bg-slate-50/75 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  <th class="py-3 px-3">Booking ID</th>
+                  <th class="py-3 px-3">Patient Details</th>
+                  <th class="py-3 px-3">Service &amp; Mode</th>
+                  <th class="py-3 px-3">Date &amp; Time</th>
+                  <th class="py-3 px-3">Status</th>
+                  <th class="py-3 px-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="bookingsTableBody" class="divide-y divide-slate-100 text-sm">
+                <tr>
+                  <td colspan="6" class="py-8 text-center text-slate-400">Loading clinical appointments from PostgreSQL...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: INQUIRIES -->
+      <section id="sectionInquiries" class="hidden space-y-4">
+        <div class="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200/80 shadow-sm space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h2 class="font-bold text-lg text-slate-800">Patient Inquiries &amp; Messages</h2>
+              <p class="text-xs text-slate-500">Queries received directly from the patient website contact form</p>
+            </div>
+          </div>
+
+          <div id="inquiriesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="col-span-full py-8 text-center text-slate-400">Loading inquiries...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: SERVICES & TIMINGS -->
+      <section id="sectionServices" class="hidden space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Active Services -->
+          <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+            <h2 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-stethoscope text-teal-600"></i>
+              Clinical Consultation Services
+            </h2>
+            <div id="servicesList" class="space-y-3">
+              <div class="text-sm text-slate-400">Loading services from PostgreSQL...</div>
+            </div>
+          </div>
+
+          <!-- Available Slots -->
+          <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+            <h2 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-clock text-teal-600"></i>
+              Daily Consultation Slots
+            </h2>
+            <p class="text-xs text-slate-500">Standard operating hours: 3:30 PM - 9:00 PM (Monday - Saturday)</p>
+            <div id="slotsList" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div class="text-sm text-slate-400">Loading time slots...</div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- MODAL: NEW APPOINTMENT (FRONT-DESK DIRECT ENTRY) -->
+  <div id="newBookingModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-base text-slate-800">Add New Patient Appointment</h3>
+        <button id="closeNewBookingModalBtn" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+      </div>
+
+      <form id="adminNewBookingForm" class="space-y-3.5 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Consultation Mode *</label>
+          <select id="admMode" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs">
+            <option value="In-Person Clinic Visit">In-Person Clinic Visit</option>
+            <option value="Online Video Telehealth">Online Video Telehealth</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Service Type *</label>
+          <select id="admService" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs">
+            <option value="General Adult Consultation">General Adult Consultation</option>
+            <option value="Hypertension & Diabetes Care">Hypertension &amp; Diabetes Care</option>
+            <option value="Pediatric Health & Guidance">Pediatric Health &amp; Guidance</option>
+            <option value="Diagnostic Reports & ECG Review">Diagnostic Reports &amp; ECG Review</option>
+            <option value="Minor Wound & Post-Op Care">Minor Wound &amp; Post-Op Care</option>
+            <option value="Online Video Consultation">Online Video Consultation</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Booking Date *</label>
+            <input id="admDate" type="date" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Time Slot *</label>
+            <select id="admTime" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs">
+              <option value="3:30 PM - 4:00 PM">3:30 PM - 4:00 PM</option>
+              <option value="4:30 PM - 5:00 PM">4:30 PM - 5:00 PM</option>
+              <option value="5:30 PM - 6:00 PM">5:30 PM - 6:00 PM</option>
+              <option value="6:30 PM - 7:00 PM">6:30 PM - 7:00 PM</option>
+              <option value="7:30 PM - 8:00 PM">7:30 PM - 8:00 PM</option>
+              <option value="8:30 PM - 9:00 PM">8:30 PM - 9:00 PM</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Patient Full Name *</label>
+            <input id="admPatientName" type="text" required placeholder="e.g. Tariq Mehmood" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">WhatsApp / Phone *</label>
+            <input id="admPatientPhone" type="tel" required placeholder="e.g. +92 300 1234567" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Symptoms / Notes</label>
+          <textarea id="admNotes" rows="2" placeholder="Clinical notes or symptoms..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs"></textarea>
+        </div>
+
+        <button type="submit" class="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold uppercase tracking-wider text-xs shadow transition">
+          Save Appointment in Database
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-slate-700 transition-all duration-300 transform translate-y-24 opacity-0 pointer-events-none">
+    <div class="w-7 h-7 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center shrink-0">
+      <i class="fa-solid fa-check"></i>
+    </div>
+    <span id="toastMsg" class="text-xs font-medium">Notification message</span>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      let authToken = localStorage.getItem('dr_talha_admin_token') || null;
+      let currentAdmin = null;
+      let bookingsCache = [];
+
+      const loginView = document.getElementById('loginView');
+      const dashboardView = document.getElementById('dashboardView');
+      const adminLoginForm = document.getElementById('adminLoginForm');
+      const loginErrorAlert = document.getElementById('loginErrorAlert');
+      const loginErrorMsg = document.getElementById('loginErrorMsg');
+      const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+      const loginPasswordInput = document.getElementById('loginPassword');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const headerDoctorName = document.getElementById('headerDoctorName');
+
+      // Toast helper
+      function showToast(msg) {
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toastMsg');
+        toastMsg.textContent = msg;
+        toast.classList.remove('translate-y-24', 'opacity-0');
+        toast.classList.add('translate-y-0', 'opacity-100');
+        setTimeout(() => {
+          toast.classList.add('translate-y-24', 'opacity-0');
+          toast.classList.remove('translate-y-0', 'opacity-100');
+        }, 3500);
+      }
+
+      // Password toggle
+      togglePasswordBtn?.addEventListener('click', () => {
+        const isPassword = loginPasswordInput.type === 'password';
+        loginPasswordInput.type = isPassword ? 'text' : 'password';
+        togglePasswordBtn.innerHTML = isPassword ? '<i class="fa-regular fa-eye-slash"></i>' : '<i class="fa-regular fa-eye"></i>';
+      });
+
+      // Quick autofill
+      document.getElementById('fillCredentialsBtn')?.addEventListener('click', () => {
+        document.getElementById('loginUsername').value = 'admin@drtalha.com';
+        document.getElementById('loginPassword').value = 'DoctorTalha@2026';
+        showToast('Credentials filled!');
+      });
+
+      // Authenticated Fetch wrapper
+      async function authFetch(url, options = {}) {
+        options.headers = options.headers || {};
+        if (authToken) {
+          options.headers['Authorization'] = `Bearer ${authToken}`;
+        }
+        if (!options.headers['Content-Type'] && options.method && options.method !== 'GET') {
+          options.headers['Content-Type'] = 'application/json';
+        }
+
+        const response = await fetch(url, options);
+        if (response.status === 401) {
+          console.warn('Unauthorized or session expired. Redirecting to login.');
+          handleLogout('Session expired. Please log in again.');
+          throw new Error('Unauthorized');
+        }
+        return response;
+      }
+
+      // Login form handler
+      adminLoginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        loginErrorAlert.classList.add('hidden');
+
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
+
+          const data = await res.json();
+          if (data.success && data.token) {
+            authToken = data.token;
+            currentAdmin = data.admin;
+            localStorage.setItem('dr_talha_admin_token', data.token);
+            localStorage.setItem('dr_talha_admin_user', JSON.stringify(data.admin));
+
+            showToast(data.message || 'Login successful!');
+            initDashboard();
+          } else {
+            loginErrorMsg.textContent = data.message || 'Login failed. Please check credentials.';
+            loginErrorAlert.classList.remove('hidden');
+          }
+        } catch (err) {
+          loginErrorMsg.textContent = 'Server connection error. Please try again.';
+          loginErrorAlert.classList.remove('hidden');
+        }
+      });
+
+      // Logout handler
+      function handleLogout(message = 'Logged out successfully.') {
+        authToken = null;
+        currentAdmin = null;
+        localStorage.removeItem('dr_talha_admin_token');
+        localStorage.removeItem('dr_talha_admin_user');
+        dashboardView.classList.add('hidden');
+        dashboardView.classList.remove('flex');
+        loginView.classList.remove('hidden');
+        loginView.classList.add('flex');
+        showToast(message);
+      }
+
+      logoutBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to log out of the doctor portal?')) {
+          handleLogout('Logged out successfully.');
+        }
+      });
+
+      // Verify Session on load
+      async function verifySession() {
+        if (!authToken) {
+          loginView.classList.remove('hidden');
+          loginView.classList.add('flex');
+          dashboardView.classList.add('hidden');
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/auth/me', {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+          });
+          const data = await res.json();
+          if (data.success && data.admin) {
+            currentAdmin = data.admin;
+            initDashboard();
+          } else {
+            handleLogout();
+          }
+        } catch (e) {
+          handleLogout();
+        }
+      }
+
+      function initDashboard() {
+        loginView.classList.add('hidden');
+        loginView.classList.remove('flex');
+        dashboardView.classList.remove('hidden');
+        dashboardView.classList.add('flex');
+
+        if (currentAdmin && headerDoctorName) {
+          headerDoctorName.textContent = currentAdmin.name || 'Dr. Talha';
+        }
+
+        fetchStats();
+        fetchBookings();
+      }
+
+      // Tab Switching
+      const tabBookingsBtn = document.getElementById('tabBookingsBtn');
+      const tabInquiriesBtn = document.getElementById('tabInquiriesBtn');
+      const tabServicesBtn = document.getElementById('tabServicesBtn');
+
+      const sectionBookings = document.getElementById('sectionBookings');
+      const sectionInquiries = document.getElementById('sectionInquiries');
+      const sectionServices = document.getElementById('sectionServices');
+
+      function switchTab(activeBtn, activeSec) {
+        [tabBookingsBtn, tabInquiriesBtn, tabServicesBtn].forEach(b => {
+          b.classList.remove('border-teal-600', 'text-teal-600', 'font-bold');
+          b.classList.add('border-transparent', 'text-slate-500', 'font-semibold');
+        });
+        activeBtn.classList.add('border-teal-600', 'text-teal-600', 'font-bold');
+        activeBtn.classList.remove('border-transparent', 'text-slate-500');
+
+        [sectionBookings, sectionInquiries, sectionServices].forEach(s => s.classList.add('hidden'));
+        activeSec.classList.remove('hidden');
+      }
+
+      tabBookingsBtn.addEventListener('click', () => switchTab(tabBookingsBtn, sectionBookings));
+      tabInquiriesBtn.addEventListener('click', () => {
+        switchTab(tabInquiriesBtn, sectionInquiries);
+        fetchInquiries();
+      });
+      tabServicesBtn.addEventListener('click', () => {
+        switchTab(tabServicesBtn, sectionServices);
+        fetchServicesAndSlots();
+      });
+
+      // Load Stats
+      async function fetchStats() {
+        try {
+          const res = await authFetch('/api/admin/stats');
+          const data = await res.json();
+          if (data.success) {
+            document.getElementById('statTotalBookings').textContent = data.stats.total_bookings;
+            document.getElementById('statTodayBookings').textContent = data.stats.today_bookings;
+            document.getElementById('statTelehealth').textContent = data.stats.telehealth_bookings;
+            document.getElementById('statInquiries').textContent = data.stats.total_inquiries;
+            document.getElementById('statUnreadInquiries').textContent = `${data.stats.unread_inquiries} unread queries`;
+            document.getElementById('statTodayDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+          }
+        } catch (e) {
+          console.error('Error fetching stats:', e);
+        }
+      }
+
+      // Load Bookings
+      async function fetchBookings() {
+        const search = document.getElementById('searchInput').value.trim();
+        const status = document.getElementById('statusFilter').value;
+        const date = document.getElementById('dateFilter').value;
+
+        let url = `/api/bookings?limit=100`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        if (status && status !== 'all') url += `&status=${encodeURIComponent(status)}`;
+        if (date) url += `&date=${encodeURIComponent(date)}`;
+
+        try {
+          const res = await authFetch(url);
+          const data = await res.json();
+          if (data.success) {
+            bookingsCache = data.data;
+            renderBookings(data.data);
+          }
+        } catch (e) {
+          console.error('Error fetching bookings:', e);
+        }
+      }
+
+      function renderBookings(list) {
+        const tbody = document.getElementById('bookingsTableBody');
+        if (!list || list.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-slate-400"><i class="fa-solid fa-folder-open text-2xl mb-2 block"></i>No appointments found matching your criteria.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = list.map(b => {
+          let statusBadge = 'bg-slate-100 text-slate-700';
+          if (b.status === 'Confirmed') statusBadge = 'bg-teal-50 text-teal-700 border border-teal-200';
+          if (b.status === 'Completed') statusBadge = 'bg-blue-50 text-blue-700 border border-blue-200';
+          if (b.status === 'Cancelled') statusBadge = 'bg-rose-50 text-rose-700 border border-rose-200';
+          if (b.status === 'Pending') statusBadge = 'bg-amber-50 text-amber-700 border border-amber-200';
+
+          const isTelehealth = (b.consultation_mode || '').toLowerCase().includes('tele') || (b.consultation_mode || '').toLowerCase().includes('video');
+          const cleanPhone = (b.patient_phone || '').replace(/[^0-9]/g, '');
+
+          return `
+            <tr class="hover:bg-slate-50/80 transition">
+              <td class="py-3.5 px-3 font-mono font-bold text-xs text-teal-700">${b.booking_id}</td>
+              <td class="py-3.5 px-3">
+                <div class="font-bold text-slate-800 text-xs">${b.patient_name}</div>
+                <div class="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+                  <i class="fa-solid fa-phone text-[10px]"></i>
+                  <span>${b.patient_phone}</span>
+                  <a href="https://wa.me/${cleanPhone}" target="_blank" class="text-emerald-600 hover:text-emerald-700 ml-1" title="WhatsApp Message">
+                    <i class="fa-brands fa-whatsapp text-xs"></i>
+                  </a>
+                </div>
+              </td>
+              <td class="py-3.5 px-3">
+                <div class="text-xs font-semibold text-slate-800">${b.service_type}</div>
+                <span class="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full mt-1 ${isTelehealth ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-600'}">
+                  <i class="fa-solid ${isTelehealth ? 'fa-video' : 'fa-hospital-user'} text-[9px]"></i>
+                  ${b.consultation_mode}
+                </span>
+              </td>
+              <td class="py-3.5 px-3">
+                <div class="text-xs font-bold text-slate-700">${b.booking_date}</div>
+                <div class="text-[11px] text-slate-500">${b.booking_time}</div>
+              </td>
+              <td class="py-3.5 px-3">
+                <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold ${statusBadge}">
+                  ${b.status}
+                </span>
+              </td>
+              <td class="py-3.5 px-3 text-right">
+                <div class="inline-flex items-center gap-1">
+                  ${b.status !== 'Confirmed' ? `
+                    <button onclick="changeStatus('${b.booking_id}', 'Confirmed')" class="px-2 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 text-xs font-semibold" title="Mark Confirmed">
+                      <i class="fa-solid fa-check"></i>
+                    </button>
+                  ` : ''}
+                  ${b.status !== 'Completed' ? `
+                    <button onclick="changeStatus('${b.booking_id}', 'Completed')" class="px-2 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold" title="Mark Completed">
+                      <i class="fa-solid fa-circle-check"></i>
+                    </button>
+                  ` : ''}
+                  ${b.status !== 'Cancelled' ? `
+                    <button onclick="changeStatus('${b.booking_id}', 'Cancelled')" class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold" title="Cancel Booking">
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  ` : ''}
+                  <button onclick="deleteBookingRow('${b.booking_id}')" class="px-2 py-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-rose-600 text-xs font-semibold" title="Delete permanently">
+                    <i class="fa-regular fa-trash-can"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      window.changeStatus = async function(id, newStatus) {
+        try {
+          const res = await authFetch(`/api/bookings/${id}/status`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status: newStatus })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast(`Status updated to ${newStatus}`);
+            fetchBookings();
+            fetchStats();
+          }
+        } catch (e) {
+          alert('Failed to update status');
+        }
+      };
+
+      window.deleteBookingRow = async function(id) {
+        if (!confirm(`Are you sure you want to delete appointment ${id}?`)) return;
+        try {
+          const res = await authFetch(`/api/bookings/${id}`, { method: 'DELETE' });
+          const data = await res.json();
+          if (data.success) {
+            showToast(`Appointment deleted`);
+            fetchBookings();
+            fetchStats();
+          }
+        } catch (e) {
+          alert('Failed to delete booking');
+        }
+      };
+
+      // Load Inquiries
+      async function fetchInquiries() {
+        try {
+          const res = await authFetch('/api/inquiries');
+          const data = await res.json();
+          if (data.success) {
+            renderInquiries(data.data);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      function renderInquiries(list) {
+        const container = document.getElementById('inquiriesContainer');
+        if (!list || list.length === 0) {
+          container.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400"><i class="fa-solid fa-inbox text-2xl mb-2 block"></i>No inquiries submitted yet.</div>`;
+          return;
+        }
+
+        container.innerHTML = list.map(inq => {
+          const dateStr = new Date(inq.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+          const cleanPhone = (inq.phone || '').replace(/[^0-9]/g, '');
+          const isUnread = inq.status === 'Unread';
+
+          return `
+            <div class="bg-slate-50/70 border ${isUnread ? 'border-amber-300 bg-amber-50/30' : 'border-slate-200'} rounded-2xl p-5 space-y-3">
+              <div class="flex items-start justify-between">
+                <div>
+                  <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    ${inq.name}
+                    ${isUnread ? `<span class="bg-amber-500 text-white text-[9px] uppercase px-1.5 py-0.5 rounded font-black tracking-wider">NEW</span>` : ''}
+                  </h4>
+                  <p class="text-xs text-slate-500 mt-0.5">${inq.phone} &bull; ${dateStr}</p>
+                </div>
+                <span class="text-xs px-2.5 py-1 rounded-full font-bold ${inq.status === 'Replied' ? 'bg-teal-100 text-teal-800' : 'bg-slate-200 text-slate-700'}">
+                  ${inq.status}
+                </span>
+              </div>
+              <div>
+                <span class="inline-block text-[11px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md mb-1">${inq.subject}</span>
+                <p class="text-xs text-slate-600 leading-relaxed bg-white p-3 rounded-xl border border-slate-100">${inq.message}</p>
+              </div>
+              <div class="flex items-center justify-between pt-2 border-t border-slate-200/60">
+                <a href="https://wa.me/${cleanPhone}?text=${encodeURIComponent('Assalam-o-Alaikum ' + inq.name + ', this is Dr. Talha Hassan Shah regarding your inquiry.')}" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 hover:text-emerald-700">
+                  <i class="fa-brands fa-whatsapp text-sm"></i>
+                  Reply on WhatsApp
+                </a>
+                <div class="flex gap-2">
+                  ${inq.status !== 'Replied' ? `
+                    <button onclick="markInquiryReplied(${inq.id})" class="text-xs font-semibold text-teal-700 hover:underline">
+                      Mark as Replied
+                    </button>
+                  ` : ''}
+                  <button onclick="deleteInquiryRow(${inq.id})" class="text-slate-400 hover:text-rose-600 text-xs" title="Delete">
+                    <i class="fa-regular fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      window.markInquiryReplied = async function(id) {
+        try {
+          const res = await authFetch(`/api/inquiries/${id}/status`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status: 'Replied' })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast('Marked as replied');
+            fetchInquiries();
+            fetchStats();
+          }
+        } catch (e) {
+          alert('Failed to update inquiry');
+        }
+      };
+
+      window.deleteInquiryRow = async function(id) {
+        if (!confirm('Delete this inquiry?')) return;
+        try {
+          const res = await authFetch(`/api/inquiries/${id}`, { method: 'DELETE' });
+          const data = await res.json();
+          if (data.success) {
+            showToast('Inquiry removed');
+            fetchInquiries();
+            fetchStats();
+          }
+        } catch (e) {
+          alert('Failed to delete inquiry');
+        }
+      };
+
+      // Load Services & Slots
+      async function fetchServicesAndSlots() {
+        try {
+          const [sRes, slRes] = await Promise.all([
+            fetch('/api/services'),
+            fetch('/api/slots')
+          ]);
+          const sData = await sRes.json();
+          const slData = await slRes.json();
+
+          if (sData.success) {
+            document.getElementById('servicesList').innerHTML = sData.data.map(s => `
+              <div class="p-3.5 rounded-xl border border-slate-100 bg-slate-50 flex items-center justify-between">
+                <div>
+                  <h4 class="font-bold text-xs text-slate-800">${s.name}</h4>
+                  <p class="text-[11px] text-slate-500 mt-0.5">${s.description || 'Standard consultation session'}</p>
+                  <span class="text-[10px] text-teal-700 font-semibold uppercase">${s.duration_minutes} Minutes Duration</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs font-black text-slate-900">PKR ${parseFloat(s.fee_pkr).toLocaleString()}</span>
+                </div>
+              </div>
+            `).join('');
+          }
+
+          if (slData.success) {
+            document.getElementById('slotsList').innerHTML = slData.data.map(slot => `
+              <div class="p-3 rounded-xl border border-slate-100 bg-slate-50 flex items-center gap-2">
+                <i class="fa-regular fa-clock text-teal-600 text-xs"></i>
+                <span class="font-bold text-xs text-slate-800">${slot.slot_time}</span>
+              </div>
+            `).join('');
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // Filter events
+      document.getElementById('searchInput').addEventListener('input', () => fetchBookings());
+      document.getElementById('statusFilter').addEventListener('change', () => fetchBookings());
+      document.getElementById('dateFilter').addEventListener('change', () => fetchBookings());
+      document.getElementById('refreshBtn').addEventListener('click', () => {
+        fetchStats();
+        fetchBookings();
+        showToast('Data refreshed from PostgreSQL!');
+      });
+
+      // CSV Export
+      document.getElementById('exportCsvBtn').addEventListener('click', () => {
+        if (!bookingsCache || bookingsCache.length === 0) {
+          alert('No bookings available to export.');
+          return;
+        }
+        const headers = ['Booking ID', 'Patient Name', 'Phone', 'Service', 'Mode', 'Date', 'Time', 'Status', 'Notes'];
+        const rows = bookingsCache.map(b => [
+          b.booking_id,
+          `"${(b.patient_name || '').replace(/"/g, '""')}"`,
+          `"${b.patient_phone || ''}"`,
+          `"${(b.service_type || '').replace(/"/g, '""')}"`,
+          `"${b.consultation_mode || ''}"`,
+          b.booking_date,
+          b.booking_time,
+          b.status,
+          `"${(b.patient_notes || '').replace(/"/g, '""')}"`
+        ]);
+
+        const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', `Dr_Talha_Appointments_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+
+      // New Booking Modal
+      const modal = document.getElementById('newBookingModal');
+      document.getElementById('newBookingModalBtn').addEventListener('click', () => {
+        document.getElementById('admDate').value = new Date().toISOString().split('T')[0];
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      });
+      document.getElementById('closeNewBookingModalBtn').addEventListener('click', () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      });
+
+      document.getElementById('adminNewBookingForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+          patient_name: document.getElementById('admPatientName').value.trim(),
+          patient_phone: document.getElementById('admPatientPhone').value.trim(),
+          service_type: document.getElementById('admService').value,
+          consultation_mode: document.getElementById('admMode').value,
+          booking_date: document.getElementById('admDate').value,
+          booking_time: document.getElementById('admTime').value,
+          patient_notes: document.getElementById('admNotes').value.trim()
+        };
+
+        try {
+          const res = await fetch('/api/bookings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast('New appointment booked in database!');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.getElementById('adminNewBookingForm').reset();
+            fetchBookings();
+            fetchStats();
+          } else {
+            alert(data.message || 'Error booking appointment');
+          }
+        } catch (err) {
+          alert('Network or server error');
+        }
+      });
+
+      // Verify Session on initial load
+      verifySession();
+    });
+  </script>
+</body>
+</html>
