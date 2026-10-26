@@ -2,19 +2,35 @@ const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'admin123',
-  database: process.env.DB_NAME || 'doctor_talha_db',
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-});
+// Check if DATABASE_URL (Cloud PostgreSQL like Neon, Supabase, Render, Aiven) is provided
+const connectionString = process.env.DATABASE_URL;
+let poolConfig;
+
+if (connectionString) {
+  poolConfig = {
+    connectionString,
+    ssl: { rejectUnauthorized: false },
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
+  };
+} else {
+  poolConfig = {
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '5432', 10),
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || 'admin123',
+    database: process.env.DB_NAME || 'doctor_talha_db',
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
+  };
+}
+
+const pool = new Pool(poolConfig);
 
 pool.on('error', (err) => {
-  console.error('[PostgreSQL Pool Error]: Unexpected error on idle client', err);
+  console.warn('[PostgreSQL Pool Notice]: Idle client error or connection issue:', err.message);
 });
 
 /**
@@ -23,11 +39,80 @@ pool.on('error', (err) => {
 const query = (text, params) => pool.query(text, params);
 
 /**
+ * In-memory fallback store for when running in serverless environments (Netlify)
+ * before a cloud PostgreSQL instance is connected
+ */
+const memoryStore = {
+  bookings: [
+    {
+      id: 1,
+      booking_id: 'THS-102938',
+      patient_name: 'Muhammad Farooq',
+      patient_phone: '+92 300 4567890',
+      service_type: 'Hypertension & Diabetes Care',
+      consultation_mode: 'In-Person Clinic Visit',
+      booking_date: new Date().toISOString().split('T')[0],
+      booking_time: '4:30 PM - 5:00 PM',
+      patient_notes: 'Regular 3-month HbA1c review and blood pressure adjustment.',
+      status: 'Confirmed',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 2,
+      booking_id: 'THS-482910',
+      patient_name: 'Ayesha Bibi',
+      patient_phone: '+92 333 7891234',
+      service_type: 'Online Video Consultation',
+      consultation_mode: 'Online Video Telehealth',
+      booking_date: new Date().toISOString().split('T')[0],
+      booking_time: '6:30 PM - 7:00 PM',
+      patient_notes: 'Follow-up consultation for seasonal respiratory allergies.',
+      status: 'Confirmed',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 3,
+      booking_id: 'THS-928174',
+      patient_name: 'Zainab Fatima',
+      patient_phone: '+92 321 6549870',
+      service_type: 'Pediatric Health & Guidance',
+      consultation_mode: 'In-Person Clinic Visit',
+      booking_date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+      booking_time: '5:30 PM - 6:00 PM',
+      patient_notes: 'Child routine wellness check and dietary nutrition consultation.',
+      status: 'Pending',
+      created_at: new Date().toISOString()
+    }
+  ],
+  inquiries: [
+    {
+      id: 1,
+      name: 'Hamza Khan',
+      phone: '+92 345 1122334',
+      subject: 'Telemedicine Guidance',
+      message: 'Hello Dr. Talha, what platform is used for video calls? Zoom or WhatsApp video?',
+      status: 'Replied',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 2,
+      name: 'Sana Tariq',
+      phone: '+92 312 9988776',
+      subject: 'Lab Report Submission',
+      message: 'I have my lipid profile and fasting sugar reports. Can I share them before our clinic appointment?',
+      status: 'Unread',
+      created_at: new Date().toISOString()
+    }
+  ]
+};
+
+/**
  * Initializes database tables and default lookup data
  */
 async function initDatabase() {
-  const client = await pool.connect();
+  let client;
   try {
+    client = await pool.connect();
     await client.query('BEGIN');
 
     // 1. Bookings Table
@@ -172,16 +257,16 @@ async function initDatabase() {
     await client.query('COMMIT');
     console.log('[PostgreSQL]: Database schemas and default records initialized successfully.');
   } catch (err) {
-    await client.query('ROLLBACK');
-    console.error('[PostgreSQL Initialization Error]:', err);
-    throw err;
+    if (client) await client.query('ROLLBACK').catch(() => {});
+    console.warn('[PostgreSQL Initialization Notice]:', err.message);
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }
 
 module.exports = {
   pool,
   query,
-  initDatabase
+  initDatabase,
+  memoryStore
 };

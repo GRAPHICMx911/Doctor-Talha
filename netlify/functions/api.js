@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check
-app.get(['/api/health', '/.netlify/functions/api/health'], (req, res) => {
+app.get(['/health', '/api/health', '/.netlify/functions/api/health'], (req, res) => {
   res.status(200).json({
     status: 'healthy',
     platform: 'Netlify Serverless Functions',
@@ -25,14 +25,20 @@ app.get(['/api/health', '/.netlify/functions/api/health'], (req, res) => {
   });
 });
 
-// API Routes
-app.use(['/api/auth', '/.netlify/functions/api/auth'], authRoutes);
-app.use(['/api/bookings', '/.netlify/functions/api/bookings'], bookingRoutes);
-app.use(['/api/inquiries', '/.netlify/functions/api/inquiries'], inquiryRoutes);
-app.use(['/api', '/.netlify/functions/api'], serviceRoutes);
-app.use(['/api/admin', '/.netlify/functions/api/admin'], adminRoutes);
+// Router for sub-paths
+const apiRouter = express.Router();
+apiRouter.use('/auth', authRoutes);
+apiRouter.use('/bookings', bookingRoutes);
+apiRouter.use('/inquiries', inquiryRoutes);
+apiRouter.use('/admin', adminRoutes);
+apiRouter.use('/', serviceRoutes);
 
-// Error Handler
+// Mount across all possible Netlify rewrite prefixes
+app.use('/.netlify/functions/api', apiRouter);
+app.use('/api', apiRouter);
+app.use('/', apiRouter);
+
+// Centralized error handler
 app.use(errorHandler);
 
 module.exports.handler = serverless(app);
