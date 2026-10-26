@@ -4,9 +4,11 @@ import sys
 
 BASE_URL = 'http://localhost:5000'
 
-def test_endpoint(name, method, path, data=None, expected_status=200):
+def test_endpoint(name, method, path, data=None, token=None, expected_status=200):
     url = BASE_URL + path
     headers = {'Content-Type': 'application/json'} if data else {}
+    if token:
+        headers['Authorization'] = f'Bearer {token}'
     body = json.dumps(data).encode('utf-8') if data else None
     
     req = urllib.request.Request(url, data=body, headers=headers, method=method)
@@ -44,13 +46,17 @@ def run_tests():
     assert slots.get("success") is True
     print(f"  -> Total active slots: {len(slots.get('data', []))}")
 
-    # 4. Get Admin Stats
-    stats = test_endpoint("Get Stats", "GET", "/api/admin/stats")
+    # 4. Authenticate Doctor Admin to get JWT token
+    login_res = test_endpoint("Login Doctor Admin", "POST", "/api/auth/login", {"username": "admin@drtalha.com", "password": "DoctorTalha@2026"})
+    token = login_res["token"]
+
+    # 5. Get Admin Stats (with token)
+    stats = test_endpoint("Get Stats", "GET", "/api/admin/stats", token=token)
     assert stats.get("success") is True
     print(f"  -> Total bookings in DB: {stats['stats']['total_bookings']}")
     print(f"  -> Total inquiries in DB: {stats['stats']['total_inquiries']}")
 
-    # 5. Create Booking
+    # 6. Create Booking (Public)
     new_booking_payload = {
         "patient_name": "Hamza Abbasi",
         "patient_phone": "+92 300 9876543",
@@ -66,18 +72,18 @@ def run_tests():
     b_id = booking_data["booking_id"]
     print(f"  -> Successfully created booking: {b_id}")
 
-    # 6. Fetch Booking By ID
-    fetched_b = test_endpoint("Get Booking By ID", "GET", f"/api/bookings/{b_id}")
+    # 7. Fetch Booking By ID (Protected)
+    fetched_b = test_endpoint("Get Booking By ID", "GET", f"/api/bookings/{b_id}", token=token)
     assert fetched_b.get("success") is True
     assert fetched_b["data"]["patient_name"] == "Hamza Abbasi"
 
-    # 7. Update Booking Status
-    updated_b = test_endpoint("Update Booking Status", "PATCH", f"/api/bookings/{b_id}/status", {"status": "Completed"})
+    # 8. Update Booking Status (Protected)
+    updated_b = test_endpoint("Update Booking Status", "PATCH", f"/api/bookings/{b_id}/status", {"status": "Completed"}, token=token)
     assert updated_b.get("success") is True
     assert updated_b["data"]["status"] == "Completed"
     print(f"  -> Status updated to {updated_b['data']['status']}")
 
-    # 8. Create Inquiry
+    # 9. Create Inquiry (Public)
     new_inquiry_payload = {
         "name": "Mariam Qureshi",
         "phone": "+92 313 4561230",
@@ -89,11 +95,11 @@ def run_tests():
     inq_id = created_inq["data"]["id"]
     print(f"  -> Created inquiry #{inq_id}")
 
-    # 9. Update Inquiry Status
-    updated_inq = test_endpoint("Update Inquiry Status", "PATCH", f"/api/inquiries/{inq_id}/status", {"status": "Replied"})
+    # 10. Update Inquiry Status (Protected)
+    updated_inq = test_endpoint("Update Inquiry Status", "PATCH", f"/api/inquiries/{inq_id}/status", {"status": "Replied"}, token=token)
     assert updated_inq.get("success") is True
 
-    # 10. Test Frontend Serving
+    # 11. Test Frontend Serving
     req = urllib.request.Request(f"{BASE_URL}/")
     with urllib.request.urlopen(req) as resp:
         html = resp.read().decode('utf-8')
@@ -101,14 +107,14 @@ def run_tests():
         assert "/js/api-bridge.js" in html
         print("PASS: [GET] / -> Index.html served with api-bridge.js injected!")
 
-    # 11. Test Admin Dashboard Serving
+    # 12. Test Admin Dashboard Serving
     req_admin = urllib.request.Request(f"{BASE_URL}/admin")
     with urllib.request.urlopen(req_admin) as resp:
         admin_html = resp.read().decode('utf-8')
-        assert "Doctor Portal" in admin_html
+        assert "Doctor Admin Portal" in admin_html or "Doctor Portal" in admin_html
         print("PASS: [GET] /admin -> Doctor Portal served successfully!")
 
-    print("\nALL 11 BACKEND AND DATABASE INTEGRATION TESTS PASSED 100%!")
+    print("\nALL BACKEND AND DATABASE INTEGRATION TESTS PASSED 100%!")
 
 if __name__ == '__main__':
     run_tests()
