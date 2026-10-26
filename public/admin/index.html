@@ -69,7 +69,7 @@
           <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Doctor Email or Username</label>
           <div class="relative">
             <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-            <input id="loginUsername" type="text" required placeholder="admin@drtalha.com or dr.talha" value="admin@drtalha.com" class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white">
+            <input id="loginUsername" type="text" required placeholder="Doctor email or username" autocomplete="username" class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white">
           </div>
         </div>
 
@@ -77,7 +77,7 @@
           <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Password</label>
           <div class="relative">
             <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-            <input id="loginPassword" type="password" required placeholder="Enter password" value="DoctorTalha@2026" class="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white">
+            <input id="loginPassword" type="password" required placeholder="Enter password" autocomplete="current-password" class="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white">
             <button type="button" id="togglePasswordBtn" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs">
               <i class="fa-regular fa-eye"></i>
             </button>
@@ -89,18 +89,6 @@
           <span>Secure Doctor Sign In</span>
         </button>
       </form>
-
-      <!-- Quick Fill Credentials Info Box -->
-      <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs space-y-1.5">
-        <div class="flex items-center justify-between text-slate-700 font-bold">
-          <span class="flex items-center gap-1.5"><i class="fa-solid fa-key text-teal-600"></i> Default Doctor Credentials:</span>
-          <button id="fillCredentialsBtn" type="button" class="text-teal-700 hover:underline text-[11px] font-bold">Autofill</button>
-        </div>
-        <div class="text-[11px] text-slate-500 font-mono space-y-0.5">
-          <div>Email: <strong class="text-slate-800">admin@drtalha.com</strong> (or <strong class="text-slate-800">dr.talha</strong>)</div>
-          <div>Password: <strong class="text-slate-800">DoctorTalha@2026</strong></div>
-        </div>
-      </div>
 
       <div class="text-center pt-2">
         <a href="/" class="text-xs text-slate-500 hover:text-teal-600 font-medium transition inline-flex items-center gap-1">
@@ -451,12 +439,6 @@
         togglePasswordBtn.innerHTML = isPassword ? '<i class="fa-regular fa-eye-slash"></i>' : '<i class="fa-regular fa-eye"></i>';
       });
 
-      // Quick autofill
-      document.getElementById('fillCredentialsBtn')?.addEventListener('click', () => {
-        document.getElementById('loginUsername').value = 'admin@drtalha.com';
-        document.getElementById('loginPassword').value = 'DoctorTalha@2026';
-        showToast('Credentials filled!');
-      });
 
       // Authenticated Fetch wrapper
       async function authFetch(url, options = {}) {
