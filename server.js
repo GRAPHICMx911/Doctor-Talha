@@ -49,7 +49,7 @@ app.use('/api', serviceRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Frontend Landing Page Route
-// Reads original Index.html, dynamically connects the api-bridge script, and serves it
+// Reads original Index.html, dynamically connects the api-bridge script and local assets, and serves it
 // Note: Index.html on disk remains 100% UNTOUCHED!
 app.get(['/', '/index.html'], (req, res, next) => {
   const filePath = path.join(__dirname, 'Index.html');
@@ -57,11 +57,32 @@ app.get(['/', '/index.html'], (req, res, next) => {
     if (err) {
       return next(err);
     }
+    
+    // Inject local FontAwesome & favicon in <head>
+    let enrichedHtml = html;
+    const localHeadTags = `
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" crossorigin="anonymous">
+`;
+    if (!enrichedHtml.includes('/vendor/fontawesome/css/all.min.css')) {
+      enrichedHtml = enrichedHtml.replace('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">', localHeadTags);
+    }
+
+    // Replace inline base64 image with fast-loading cached asset
+    const base64ImgRegex = /<img\s+src="data:image\/jpeg;base64,[^"]+"\s+alt="Modern Consultation Room"\s+class="([^"]+)">/i;
+    if (base64ImgRegex.test(enrichedHtml)) {
+      enrichedHtml = enrichedHtml.replace(base64ImgRegex, `<img src="/images/hero-clinic.jpg" alt="Modern Consultation Room" class="w-full h-80 object-cover" loading="eager" onerror="this.onerror=null; this.src='/images/logo.svg';">`);
+    }
+
+    // Inject api-bridge right before closing body tag
     const bridgeScript = `
   <!-- Node.js + Express + PostgreSQL Live Bridge -->
   <script src="/js/api-bridge.js"></script>
 </body>`;
-    const enrichedHtml = html.replace('</body>', bridgeScript);
+    enrichedHtml = enrichedHtml.replace('</body>', bridgeScript);
+
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.send(enrichedHtml);
   });
