@@ -22,9 +22,3 @@
   from = "/admin/*"
   to = "/admin/index.html"
   status = 200
-
-# Fallback for client-side routing
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
